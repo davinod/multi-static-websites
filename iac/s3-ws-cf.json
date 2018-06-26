@@ -1,0 +1,149 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Resources" : {
+    "S3Bucket1":{
+      "Type":"AWS::S3::Bucket",
+      "Properties":{
+        "WebsiteConfiguration":{
+         "IndexDocument" : "index.html",
+         "ErrorDocument" : "error.html"
+       }
+      }
+    },
+    "S3Bucket2":{
+      "Type":"AWS::S3::Bucket",
+      "Properties":{
+        "WebsiteConfiguration":{
+         "IndexDocument" : "index.html",
+         "ErrorDocument" : "error.html"
+       }
+      }
+    },
+    "S3BucketPolicy1":{
+      "Type" : "AWS::S3::BucketPolicy",
+      "Properties" : {
+        "Bucket" : {"Ref":"S3Bucket1"},
+        "PolicyDocument": {
+          "Statement":[{
+    	    "Action":["s3:GetObject"],
+    	    "Effect":"Allow",
+    	    "Resource": { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "S3Bucket1" } , "/*" ]]},
+    	    "Principal":"*"
+          }]
+        }
+      }
+    },
+    "S3BucketPolicy2":{
+      "Type" : "AWS::S3::BucketPolicy",
+      "Properties" : {
+        "Bucket" : {"Ref":"S3Bucket2"},
+        "PolicyDocument": {
+          "Statement":[{
+    	    "Action":["s3:GetObject"],
+    	    "Effect":"Allow",
+    	    "Resource": { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "S3Bucket2" } , "/*" ]]},
+    	    "Principal":"*"
+          }]
+        }
+      }
+    },
+    "myDistribution1" : {
+      "Type" : "AWS::CloudFront::Distribution",
+      "Properties" : {
+        "DistributionConfig" : {
+          "Origins" : [ {
+            "DomainName" : {"Fn::Join" : ["",[{"Ref":"S3Bucket1"}, ".s3.amazonaws.com"]]},
+            "Id" : "myS3Origin1",
+            "S3OriginConfig" : {
+                "OriginAccessIdentity" : ""
+            }
+          }],
+          "Enabled" : "true",
+          "Comment" : "Some comment",
+          "DefaultRootObject" : "index.html",
+          "DefaultCacheBehavior" : {
+            "AllowedMethods" : [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ],
+            "TargetOriginId" : "myS3Origin1",
+            "ForwardedValues" : {
+                "QueryString" : "false",
+                "Cookies" : { "Forward" : "none" }
+            },
+            "ViewerProtocolPolicy" : "allow-all"
+          },
+         "PriceClass" : "PriceClass_200",
+         "ViewerCertificate" : { "CloudFrontDefaultCertificate" : "true" }
+        }
+      }
+    },
+    "myDistribution2" : {
+      "Type" : "AWS::CloudFront::Distribution",
+      "Properties" : {
+        "DistributionConfig" : {
+          "Origins" : [ {
+            "DomainName" : {"Fn::Join" : ["",[{"Ref":"S3Bucket2"}, ".s3.amazonaws.com"]]},
+            "Id" : "myS3Origin2",
+            "S3OriginConfig" : {
+                "OriginAccessIdentity" : ""
+            }
+          }],
+          "Enabled" : "true",
+          "Comment" : "Some comment",
+          "DefaultRootObject" : "index.html",
+          "DefaultCacheBehavior" : {
+            "AllowedMethods" : [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ],
+            "TargetOriginId" : "myS3Origin2",
+            "ForwardedValues" : {
+                "QueryString" : "false",
+                "Cookies" : { "Forward" : "none" }
+            },
+            "ViewerProtocolPolicy" : "allow-all"
+          },
+         "PriceClass" : "PriceClass_200",
+         "ViewerCertificate" : { "CloudFrontDefaultCertificate" : "true" }
+        }
+      }
+    }
+  },
+  "Outputs":{
+    "CloudFrontDistroDomain1": {
+      "Description": "DNS for CF distro1",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Fn::GetAtt": [
+                "myDistribution",
+                "DomainName"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "CloudFrontDistroDomain2": {
+      "Description": "DNS for CF distro2",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Fn::GetAtt": [
+                "myDistribution",
+                "DomainName"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "S3BucketName1":{
+      "Description":"S3 Bucket Name1",
+      "Value":{"Ref":"S3Bucket1"}
+    },
+    "S3BucketName2":{
+      "Description":"S3 Bucket Name2",
+      "Value":{"Ref":"S3Bucket2"}
+    }
+  }
+}
