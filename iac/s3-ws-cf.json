@@ -113,7 +113,7 @@
           [
             {
               "Fn::GetAtt": [
-                "myDistribution",
+                "myDistribution1",
                 "DomainName"
               ]
             }
@@ -129,7 +129,7 @@
           [
             {
               "Fn::GetAtt": [
-                "myDistribution",
+                "myDistribution2",
                 "DomainName"
               ]
             }
